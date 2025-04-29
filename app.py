@@ -31,7 +31,7 @@ cores_vivas = {
 
 # Atribui cor e tamanho padrão
 pessoas['cor'] = pessoas['status'].map(cores_suaves)
-pessoas['tamanho'] = 7
+pessoas['tamanho'] = 4
 empresas['cor'] = 'rgba(0, 0, 255, 0.7)'  # azul claro
 empresas['tamanho'] = 12
 
@@ -43,11 +43,11 @@ empresa_selecionada = st.sidebar.selectbox("Selecione um estabelecimento (ou nen
 # Destaca seleção se houver
 if pessoa_selecionada:
     pessoas.loc[pessoas["nome"] == pessoa_selecionada, "cor"] = pessoas.loc[pessoas["nome"] == pessoa_selecionada, "status"].map(cores_vivas)
-    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "tamanho"] = 12
+    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "tamanho"] = 6
 
 if empresa_selecionada:
     empresas.loc[empresas["nome"] == empresa_selecionada, "cor"] = "blue"
-    empresas.loc[empresas["nome"] == empresa_selecionada, "tamanho"] = 16
+    empresas.loc[empresas["nome"] == empresa_selecionada, "tamanho"] = 14
 
 # Junta os dados
 df_mapa = pd.concat([pessoas, empresas], ignore_index=True)
