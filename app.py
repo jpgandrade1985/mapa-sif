@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
+import plotly.graph_objects as go
 
 st.set_page_config(layout="wide")
 st.title("Mapa Interativo de Pessoas e Estabelecimentos")
@@ -22,52 +22,60 @@ cores_status = {
     'licença/afastamento': 'rgba(255, 0, 0, 0.4)'  # Vermelho claro
 }
 
-# Atribui cor e tamanho fixo
 pessoas['cor'] = pessoas['status'].map(cores_status)
 pessoas['tamanho'] = 7
+pessoas['tipo'] = 'Pessoa'
 
 empresas['cor'] = 'rgba(0, 0, 255, 0.4)'  # Azul claro
 empresas['tamanho'] = 12
+empresas['status'] = ''  # para compatibilizar hover
+empresas['lotação'] = ''
+empresas['tipo'] = 'Estabelecimento'
 
 # Filtros na barra lateral
 st.sidebar.header("Filtros")
 pessoa_sel = st.sidebar.selectbox("Selecione uma pessoa", [""] + sorted(pessoas["nome"].unique()))
 empresa_sel = st.sidebar.selectbox("Selecione um estabelecimento", [""] + sorted(empresas["nome"].unique()))
 
-# Aplica filtros condicionais
+# Aplica filtros
 pessoas_filtrado = pessoas if not pessoa_sel else pessoas[pessoas["nome"] == pessoa_sel]
 empresas_filtrado = empresas if not empresa_sel else empresas[empresas["nome"] == empresa_sel]
 
-# Junta dados para o mapa
+# Junta os dados
 df_mapa = pd.concat([pessoas_filtrado, empresas_filtrado], ignore_index=True)
 
 # Centro do mapa
-center = {
-    "lat": df_mapa["latitude"].mean(),
-    "lon": df_mapa["longitude"].mean()
-}
+center_lat = df_mapa["latitude"].mean()
+center_lon = df_mapa["longitude"].mean()
 
-# Criação do mapa
-fig = px.scatter_mapbox(
-    df_mapa,
-    lat="latitude",
-    lon="longitude",
-    hover_name="nome",
-    hover_data=["cidade", "status", "lotação"],
-    color="cor",
-    size="tamanho",
-    size_max=20,
-    zoom=10,
-    center=center
-)
+# Criação do mapa com go.Scattermapbox
+fig = go.Figure()
 
-# Layout e controles do mapa
+for _, row in df_mapa.iterrows():
+    fig.add_trace(go.Scattermapbox(
+        lat=[row["latitude"]],
+        lon=[row["longitude"]],
+        mode="markers",
+        marker=dict(
+            size=row["tamanho"],
+            color=row["cor"],
+            symbol="square" if row["tipo"] == "Estabelecimento" else "circle"
+        ),
+        hovertemplate=(
+            f"<b>{row['nome']}</b><br>"
+            f"Cidade: {row.get('cidade', '')}<br>"
+            f"Status: {row.get('status', '')}<br>"
+            f"Lotação: {row.get('lotação', '')}<extra></extra>"
+        )
+    ))
+
 fig.update_layout(
     mapbox_style="open-street-map",
-    margin={"r": 0, "t": 0, "l": 0, "b": 0},
-    showlegend=False,
-    dragmode='zoom'
+    mapbox=dict(
+        center=dict(lat=center_lat, lon=center_lon),
+        zoom=10
+    ),
+    margin=dict(l=0, r=0, t=0, b=0)
 )
 
-# Exibe o mapa
 st.plotly_chart(fig, use_container_width=True)
