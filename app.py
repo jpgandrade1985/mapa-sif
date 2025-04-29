@@ -10,32 +10,32 @@ pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
 empresas = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
 # Adicionando os dados de localização geográfica (latitude e longitude)
-df_pessoas['latitude'] = df_pessoas['cep'].apply(lambda x: get_geolocation(x)['lat'])
-df_pessoas['longitude'] = df_pessoas['cep'].apply(lambda x: get_geolocation(x)['lon'])
-df_estabs['latitude'] = df_estabs['cep'].apply(lambda x: get_geolocation(x)['lat'])
-df_estabs['longitude'] = df_estabs['cep'].apply(lambda x: get_geolocation(x)['lon'])
+pessoas['latitude'] = pessoas['cep'].apply(lambda x: get_geolocation(x)['lat'])
+pessoas['longitude'] = pessoas['cep'].apply(lambda x: get_geolocation(x)['lon'])
+empresas['latitude'] = empresas['cep'].apply(lambda x: get_geolocation(x)['lat'])
+empresas['longitude'] = empresas['cep'].apply(lambda x: get_geolocation(x)['lon'])
 
 # Adicionando cidade
-df_pessoas['cidade'] = df_pessoas['cep'].apply(lambda x: get_city(x))
+pessoas['cidade'] = pessoas['cep'].apply(lambda x: get_city(x))
 
 # Barra lateral com filtros
 st.sidebar.header('Filtros')
-pessoa_selecionada = st.sidebar.selectbox('Selecione uma pessoa:', ['Todos'] + list(df_pessoas['nome'].unique()))
-estabelecimento_selecionado = st.sidebar.selectbox('Selecione um estabelecimento:', ['Todos'] + list(df_estabs['nome'].unique()))
+pessoa_selecionada = st.sidebar.selectbox('Selecione uma pessoa:', ['Todos'] + list(pessoas['nome'].unique()))
+estabelecimento_selecionado = st.sidebar.selectbox('Selecione um estabelecimento:', ['Todos'] + list(empresas['nome'].unique()))
 
 # Filtrando dados
-df_pessoas_filtrado = df_pessoas.copy()
-df_estabs_filtrado = df_estabs.copy()
+pessoas_filtrado = pessoas.copy()
+empresas_filtrado = empresas.copy()
 
 if pessoa_selecionada not in [None, '', 'Todos']:
-    df_pessoas_filtrado = df_pessoas[df_pessoas['nome'] == pessoa_selecionada]
+    pessoas_filtrado = pessoas[pessoas['nome'] == pessoa_selecionada]
 
 if estabelecimento_selecionado not in [None, '', 'Todos']:
-    df_estabs_filtrado = df_estabs[df_estabs['nome'] == estabelecimento_selecionado]
+    empresas_filtrado = empresas[df_estabs['nome'] == estabelecimento_selecionado]
 
 # Ajustando o centro do mapa
-center_lat = df_pessoas_filtrado['latitude'].mean()
-center_lon = df_pessoas_filtrado['longitude'].mean()
+center_lat = pessoas_filtrado['latitude'].mean()
+center_lon = pessoas_filtrado['longitude'].mean()
 
 # Adicionando as cores para cada status
 status_cor = {
@@ -44,12 +44,12 @@ status_cor = {
     'licença/afastamento': 'rgba(255, 0, 0, 0.7)'  # Vermelho suave
 }
 
-df_pessoas_filtrado['cor'] = df_pessoas_filtrado['status'].map(status_cor)
-df_estabs_filtrado['cor'] = 'rgba(0, 0, 255, 0.7)'  # Cor fixa para os estabelecimentos
+pessoas_filtrado['cor'] = pessoas_filtrado['status'].map(status_cor)
+empresas_filtrado['cor'] = 'rgba(0, 0, 255, 0.7)'  # Cor fixa para os estabelecimentos
 
 # Criando o mapa
 fig = px.scatter_mapbox(
-    df_pessoas_filtrado.append(df_estabs_filtrado),
+    df_pessoas_filtrado.append(empresas_filtrado),
     lat="latitude",
     lon="longitude",
     color="cor",
