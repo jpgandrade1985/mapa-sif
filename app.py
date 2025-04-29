@@ -23,11 +23,11 @@ cores_status = {
 }
 
 pessoas['cor'] = pessoas['status'].map(cores_status)
-pessoas['tamanho'] = 7
+pessoas['tamanho'] = 10
 pessoas['tipo'] = 'Pessoa'
 
 empresas['cor'] = 'rgba(0, 0, 255, 1.0)'  # Azul claro
-empresas['tamanho'] = 12
+empresas['tamanho'] = 20
 empresas['status'] = ''  # para compatibilizar hover
 empresas['lotação'] = ''
 empresas['tipo'] = 'Estabelecimento'
@@ -73,7 +73,7 @@ fig.update_layout(
     mapbox_style="carto-positron",
     mapbox=dict(
         center=dict(lat=center_lat, lon=center_lon),
-        zoom=10
+        zoom=5
     ),
     margin=dict(l=0, r=0, t=0, b=0)
 )
