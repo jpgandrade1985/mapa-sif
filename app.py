@@ -3,75 +3,65 @@ import pandas as pd
 import plotly.express as px
 
 st.set_page_config(layout="wide")
-st.title("Pessoas e Estabelecimentos")
+st.title("Mapa Interativo de Pessoas e Estabelecimentos")
 
 # Carrega os dados
 pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
 empresas = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
-# Conversão e limpeza
+# Converte latitude e longitude para numérico e remove inválidos
 for df in [pessoas, empresas]:
     df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
     df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
     df.dropna(subset=["latitude", "longitude"], inplace=True)
 
-# Cores suaves padrão por status
-cores_suaves = {
-    'férias': 'rgba(255, 255, 0, 0.7)',       # amarelo claro
-    'em atividade': 'rgba(0, 128, 0, 0.7)',   # verde claro
-    'licença/afastamento': 'rgba(255, 0, 0, 0.7)'  # vermelho claro
+# Cores suaves por status
+cores_status = {
+    'férias': 'rgba(255, 255, 0, 0.4)',         # Amarelo claro
+    'em atividade': 'rgba(0, 128, 0, 0.4)',      # Verde claro
+    'licença/afastamento': 'rgba(255, 0, 0, 0.4)'  # Vermelho claro
 }
 
-# Cores destacadas
-cores_vivas = {
-    'férias': 'yellow',
-    'em atividade': 'green',
-    'licença/afastamento': 'red'
-}
+# Atribui cor e tamanho fixo
+pessoas['cor'] = pessoas['status'].map(cores_status)
+pessoas['tamanho'] = 7
 
-# Atribui cor e tamanho padrão
-pessoas['cor'] = pessoas['status'].map(cores_suaves)
-pessoas['tamanho'] = 4
-empresas['cor'] = 'rgba(0, 0, 255, 0.7)'  # azul claro
+empresas['cor'] = 'rgba(0, 0, 255, 0.4)'  # Azul claro
 empresas['tamanho'] = 12
 
-# Filtros
+# Filtros na barra lateral
 st.sidebar.header("Filtros")
-pessoa_selecionada = st.sidebar.selectbox("Selecione uma pessoa (ou nenhuma)", [""] + sorted(pessoas["nome"].unique()))
-empresa_selecionada = st.sidebar.selectbox("Selecione um estabelecimento (ou nenhum)", [""] + sorted(empresas["nome"].unique()))
+pessoa_sel = st.sidebar.selectbox("Selecione uma pessoa", [""] + sorted(pessoas["nome"].unique()))
+empresa_sel = st.sidebar.selectbox("Selecione um estabelecimento", [""] + sorted(empresas["nome"].unique()))
 
-# Destaca seleção se houver
-if pessoa_selecionada:
-    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "cor"] = pessoas.loc[pessoas["nome"] == pessoa_selecionada, "status"].map(cores_vivas)
-    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "tamanho"] = 10
+# Aplica filtros condicionais
+pessoas_filtrado = pessoas if not pessoa_sel else pessoas[pessoas["nome"] == pessoa_sel]
+empresas_filtrado = empresas if not empresa_sel else empresas[empresas["nome"] == empresa_sel]
 
-if empresa_selecionada:
-    empresas.loc[empresas["nome"] == empresa_selecionada, "cor"] = "blue"
-    empresas.loc[empresas["nome"] == empresa_selecionada, "tamanho"] = 20
+# Junta dados para o mapa
+df_mapa = pd.concat([pessoas_filtrado, empresas_filtrado], ignore_index=True)
 
-# Junta os dados
-df_mapa = pd.concat([pessoas, empresas], ignore_index=True)
-
-# Define o centro do mapa
+# Centro do mapa
 center = {
-    "lat": -23.5489,
-    "lon": -46.6388
+    "lat": df_mapa["latitude"].mean(),
+    "lon": df_mapa["longitude"].mean()
 }
 
-# Mapa com plotly express
+# Criação do mapa
 fig = px.scatter_mapbox(
     df_mapa,
     lat="latitude",
     lon="longitude",
     hover_name="nome",
-    hover_data=["cidade", "status", "lotacao"],
+    hover_data=["cidade", "status", "lotação"],
     color="cor",
     size="tamanho",
     size_max=20,
-    zoom=5,
+    zoom=10,
     center=center
 )
 
+# Layout e controles do mapa
 fig.update_layout(
     mapbox_style="open-street-map",
     margin={"r": 0, "t": 0, "l": 0, "b": 0},
@@ -79,5 +69,5 @@ fig.update_layout(
     dragmode='zoom'
 )
 
-# Mostra o gráfico
+# Exibe o mapa
 st.plotly_chart(fig, use_container_width=True)
