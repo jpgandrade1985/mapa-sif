@@ -54,8 +54,8 @@ df_mapa = pd.concat([pessoas, empresas], ignore_index=True)
 
 # Define o centro do mapa
 center = {
-    "lat": df_mapa["latitude"].mean(),
-    "lon": df_mapa["longitude"].mean()
+    "lat": -23.5489,
+    "lon": -46.6388
 }
 
 # Mapa com plotly express
