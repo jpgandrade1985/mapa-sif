@@ -43,11 +43,11 @@ empresa_selecionada = st.sidebar.selectbox("Selecione um estabelecimento (ou nen
 # Destaca seleção se houver
 if pessoa_selecionada:
     pessoas.loc[pessoas["nome"] == pessoa_selecionada, "cor"] = pessoas.loc[pessoas["nome"] == pessoa_selecionada, "status"].map(cores_vivas)
-    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "tamanho"] = 6
+    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "tamanho"] = 10
 
 if empresa_selecionada:
     empresas.loc[empresas["nome"] == empresa_selecionada, "cor"] = "blue"
-    empresas.loc[empresas["nome"] == empresa_selecionada, "tamanho"] = 14
+    empresas.loc[empresas["nome"] == empresa_selecionada, "tamanho"] = 20
 
 # Junta os dados
 df_mapa = pd.concat([pessoas, empresas], ignore_index=True)
