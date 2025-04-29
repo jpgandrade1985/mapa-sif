@@ -70,7 +70,7 @@ for _, row in df_mapa.iterrows():
     ))
 
 fig.update_layout(
-    mapbox_style="open-street-map",
+    mapbox_style="carto-positron",
     mapbox=dict(
         center=dict(lat=center_lat, lon=center_lon),
         zoom=10
