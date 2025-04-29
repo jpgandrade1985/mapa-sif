@@ -9,73 +9,68 @@ st.title("Mapa Interativo de Pessoas e Estabelecimentos")
 pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
 empresas = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
-# Converte latitude e longitude para numérico e remove inválidos
-for df in [pessoas, empresas]:
-    df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
-    df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
-    df.dropna(subset=["latitude", "longitude"], inplace=True)
+# Adicionando os dados de localização geográfica (latitude e longitude)
+df_pessoas['latitude'] = df_pessoas['cep'].apply(lambda x: get_geolocation(x)['lat'])
+df_pessoas['longitude'] = df_pessoas['cep'].apply(lambda x: get_geolocation(x)['lon'])
+df_estabs['latitude'] = df_estabs['cep'].apply(lambda x: get_geolocation(x)['lat'])
+df_estabs['longitude'] = df_estabs['cep'].apply(lambda x: get_geolocation(x)['lon'])
 
-# Cores suaves por status
-cores_status = {
-    'férias': 'rgba(255, 255, 0, 1.0)',         # Amarelo claro
-    'em atividade': 'rgba(0, 128, 0, 1.0)',      # Verde claro
-    'licença/afastamento': 'rgba(255, 0, 0, 1.0)'  # Vermelho claro
+# Adicionando cidade
+df_pessoas['cidade'] = df_pessoas['cep'].apply(lambda x: get_city(x))
+
+# Barra lateral com filtros
+st.sidebar.header('Filtros')
+pessoa_selecionada = st.sidebar.selectbox('Selecione uma pessoa:', ['Todos'] + list(df_pessoas['nome'].unique()))
+estabelecimento_selecionado = st.sidebar.selectbox('Selecione um estabelecimento:', ['Todos'] + list(df_estabs['nome'].unique()))
+
+# Filtrando dados
+df_pessoas_filtrado = df_pessoas.copy()
+df_estabs_filtrado = df_estabs.copy()
+
+if pessoa_selecionada not in [None, '', 'Todos']:
+    df_pessoas_filtrado = df_pessoas[df_pessoas['nome'] == pessoa_selecionada]
+
+if estabelecimento_selecionado not in [None, '', 'Todos']:
+    df_estabs_filtrado = df_estabs[df_estabs['nome'] == estabelecimento_selecionado]
+
+# Ajustando o centro do mapa
+center_lat = df_pessoas_filtrado['latitude'].mean()
+center_lon = df_pessoas_filtrado['longitude'].mean()
+
+# Adicionando as cores para cada status
+status_cor = {
+    'férias': 'rgba(255, 255, 0, 0.7)',  # Amarelo suave
+    'em atividade': 'rgba(0, 255, 0, 0.7)',  # Verde suave
+    'licença/afastamento': 'rgba(255, 0, 0, 0.7)'  # Vermelho suave
 }
 
-pessoas['cor'] = pessoas['status'].map(cores_status)
-pessoas['tamanho'] = 10
-pessoas['tipo'] = 'Pessoa'
+df_pessoas_filtrado['cor'] = df_pessoas_filtrado['status'].map(status_cor)
+df_estabs_filtrado['cor'] = 'rgba(0, 0, 255, 0.7)'  # Cor fixa para os estabelecimentos
 
-empresas['cor'] = 'rgba(0, 0, 255, 1.0)'  # Azul claro
-empresas['tamanho'] = 20
-empresas['status'] = ''  # para compatibilizar hover
-empresas['lotação'] = ''
-empresas['tipo'] = 'Estabelecimento'
-
-# Filtros na barra lateral
-st.sidebar.header("Filtros")
-pessoa_sel = st.sidebar.selectbox("Selecione uma pessoa", [""] + sorted(pessoas["nome"].unique()))
-empresa_sel = st.sidebar.selectbox("Selecione um estabelecimento", [""] + sorted(empresas["nome"].unique()))
-
-# Aplica filtros
-pessoas_filtrado = pessoas if not pessoa_sel else pessoas[pessoas["nome"] == pessoa_sel]
-empresas_filtrado = empresas if not empresa_sel else empresas[empresas["nome"] == empresa_sel]
-
-# Junta os dados
-df_mapa = pd.concat([pessoas_filtrado, empresas_filtrado], ignore_index=True)
-
-# Centro do mapa
-center_lat = -23.5489
-center_lon = -46.6388
-
-# Criação do mapa com go.Scattermapbox
-fig = go.Figure()
-
-for _, row in df_mapa.iterrows():
-    fig.add_trace(go.Scattermapbox(
-        lat=[row["latitude"]],
-        lon=[row["longitude"]],
-        mode="markers",
-        marker=dict(
-            size=row["tamanho"],
-            color=row["cor"],
-            symbol="square" if row["tipo"] == "Estabelecimento" else "circle"
-        ),
-        hovertemplate=(
-            f"<b>{row['nome']}</b><br>"
-            f"Cidade: {row.get('cidade', '')}<br>"
-            f"Status: {row.get('status', '')}<br>"
-            f"Lotação: {row.get('lotação', '')}<extra></extra>"
-        )
-    ))
-
-fig.update_layout(
-    mapbox_style="carto-positron",
-    mapbox=dict(
-        center=dict(lat=center_lat, lon=center_lon),
-        zoom=5
-    ),
-    margin=dict(l=0, r=0, t=0, b=0)
+# Criando o mapa
+fig = px.scatter_mapbox(
+    df_pessoas_filtrado.append(df_estabs_filtrado),
+    lat="latitude",
+    lon="longitude",
+    color="cor",
+    hover_name="nome",
+    hover_data=["cidade", "status", "lotação"],
+    title="Mapa de Pessoas e Estabelecimentos",
+    color_continuous_scale="Viridis",
+    size_max=10,
+    zoom=10
 )
 
-st.plotly_chart(fig, use_container_width=True)
+# Removendo a legenda e configurando o mapa
+fig.update_layout(
+    mapbox_style="carto-positron",  # Mapa mais limpo
+    mapbox=dict(
+        center=dict(lat=center_lat, lon=center_lon),
+        zoom=10
+    ),
+    margin=dict(l=0, r=0, t=0, b=0),
+    showlegend=False  # Removendo a legenda
+)
+
+# Exibindo o mapa
+st.plotly_chart(fig)
