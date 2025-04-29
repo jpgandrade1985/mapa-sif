@@ -2,92 +2,80 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# ---- CONFIGURAÇÕES INICIAIS ----
-st.set_page_config(layout="wide", page_title="Mapa Interativo de Pessoas e Estabelecimentos")
-
-# ---- CARREGAR DADOS ----
+# Carregar os dados geolocalizados
 df_pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
-df_estabs = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
+df_estabelecimentos = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
-# ---- FILTROS SIDEBAR ----
-st.sidebar.title("🎯 Filtros")
-
-pessoa_selecionada = st.sidebar.selectbox("Selecione uma pessoa", ["Todas"] + df_pessoas["nome"].tolist())
-estab_selecionado = st.sidebar.selectbox("Selecione um estabelecimento", ["Todos"] + df_estabs["nome"].tolist())
-
-# ---- APLICAR FILTROS ----
-df_pessoas_plot = df_pessoas.copy()
-df_estabs_plot = df_estabs.copy()
-
-highlight_pessoa = None
-highlight_estab = None
-
-if pessoa_selecionada != "Todas":
-    highlight_pessoa = df_pessoas[df_pessoas["nome"] == pessoa_selecionada]
-    df_pessoas_plot = df_pessoas_plot[df_pessoas_plot["nome"] != pessoa_selecionada]
-
-if estab_selecionado != "Todos":
-    highlight_estab = df_estabs[df_estabs["nome"] == estab_selecionado]
-    df_estabs_plot = df_estabs_plot[df_estabs_plot["nome"] != estab_selecionado]
-
-# ---- CORES PARA STATUS ----
-cores = {
-    "férias": "rgba(255, 255, 0, 0.4)",           # amarelo claro
-    "em atividade": "rgba(0, 255, 0, 0.4)",       # verde claro
-    "licença/afastamento": "rgba(255, 0, 0, 0.4)" # vermelho claro
+# Cores suaves para status
+cores_status = {
+    "férias": "rgba(255, 255, 0, 0.4)",       # amarelo suave
+    "em atividade": "rgba(0, 255, 0, 0.4)",    # verde suave
+    "licença/afastamento": "rgba(255, 0, 0, 0.4)" # vermelho suave
 }
 
-# ---- CRIAR FIGURA PLOTLY ----
+# Cores destacadas para seleção
+cores_destaque = {
+    "férias": "rgba(255, 255, 0, 1.0)",
+    "em atividade": "rgba(0, 200, 0, 1.0)",
+    "licença/afastamento": "rgba(200, 0, 0, 1.0)"
+}
+
+st.sidebar.header("Filtros")
+pessoa_selecionada = st.sidebar.selectbox("Pessoa", ["Todas"] + df_pessoas['nome'].dropna().unique().tolist())
+estab_selecionado = st.sidebar.selectbox("Estabelecimento", ["Todos"] + df_estabelecimentos['nome'].dropna().unique().tolist())
+
+# Marcar os selecionados
+df_pessoas['cor'] = df_pessoas['status'].map(cores_status)
+df_pessoas['tamanho'] = 10
+
+if pessoa_selecionada != "Todas":
+    df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'cor'] = df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'status'].map(cores_destaque)
+    df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'tamanho'] = 16
+
+df_estabelecimentos['forma'] = 'square'
+df_estabelecimentos['cor'] = "rgba(0, 0, 255, 0.4)"  # azul suave
+df_estabelecimentos['tamanho'] = 12
+
+if estab_selecionado != "Todos":
+    df_estabelecimentos.loc[df_estabelecimentos['nome'] == estab_selecionado, 'cor'] = "rgba(0, 0, 255, 1.0)"
+    df_estabelecimentos.loc[df_estabelecimentos['nome'] == estab_selecionado, 'tamanho'] = 18
+
+# Criar mapa
 fig = px.scatter_mapbox(
-    df_pessoas_plot,
-    lat="latitude",
-    lon="longitude",
-    color="status",
-    color_discrete_map=cores,
-    hover_name="nome",
-    hover_data=["cidade", "status", "lotação"],
+    df_pessoas,
+    lat='latitude',
+    lon='longitude',
+    color_discrete_sequence=["red"],  # cor será sobrescrita manualmente
+    hover_name='nome',
+    hover_data={'cidade': True, 'status': True, 'lotacao': True, 'latitude': False, 'longitude': False, 'cor': False},
     zoom=6,
-    height=700,
-    size_max=5
+    height=700
 )
 
-# Adiciona os estabelecimentos como quadrados azuis
+# Adicionar manualmente os marcadores
+fig.update_traces(marker=dict(size=df_pessoas['tamanho'], color=df_pessoas['cor'], symbol="circle"))
+
+# Adicionar estabelecimentos
 fig.add_scattermapbox(
-    lat=df_estabs_plot["latitude"],
-    lon=df_estabs_plot["longitude"],
-    mode="markers",
-    marker=dict(size=12, symbol="square", color="rgba(0, 0, 255, 0.4)"),
-    name="Estabelecimentos",
-    text=df_estabs_plot["nome"],
-    hoverinfo="text"
+    lat=df_estabelecimentos['latitude'],
+    lon=df_estabelecimentos['longitude'],
+    mode='markers',
+    marker=dict(
+        size=df_estabelecimentos['tamanho'],
+        color=df_estabelecimentos['cor'],
+        symbol="square"
+    ),
+    text=df_estabelecimentos['nome'],
+    hoverinfo='text'
 )
 
-# Destaques com cores vivas
-if highlight_pessoa is not None:
-    fig.add_scattermapbox(
-        lat=highlight_pessoa["latitude"],
-        lon=highlight_pessoa["longitude"],
-        mode="markers",
-        marker=dict(size=14, color="green"),
-        name="Pessoa Selecionada",
-        text=highlight_pessoa["nome"],
-        hoverinfo="text"
-    )
+# Layout do mapa
+fig.update_layout(
+    mapbox_style="open-street-map",
+    mapbox_zoom=6,
+    mapbox_center={"lat": -23.55, "lon": -46.63},  # São Paulo como centro
+    margin={"r":0,"t":0,"l":0,"b":0}
+)
 
-if highlight_estab is not None:
-    fig.add_scattermapbox(
-        lat=highlight_estab["latitude"],
-        lon=highlight_estab["longitude"],
-        mode="markers",
-        marker=dict(size=18, symbol="square", color="blue"),
-        name="Estabelecimento Selecionado",
-        text=highlight_estab["nome"],
-        hoverinfo="text"
-    )
-
-fig.update_layout(mapbox_style="open-street-map")
-fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
-
-# ---- MOSTRAR MAPA ----
-st.title("🗺️ Mapa de Pessoas e Estabelecimentos")
+st.title("📍 Mapa de Pessoas e Estabelecimentos")
 st.plotly_chart(fig, use_container_width=True)
