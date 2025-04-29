@@ -6,6 +6,9 @@ import plotly.express as px
 df_pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
 df_estabelecimentos = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
+df_pessoas = df_pessoas.dropna(subset=["latitude", "longitude"])
+df_estabelecimentos = df_estabelecimentos.dropna(subset=["latitude", "longitude"])
+
 # Cores suaves para status
 cores_status = {
     "férias": "rgba(255, 255, 0, 0.4)",       # amarelo suave
