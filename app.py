@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 
 st.set_page_config(layout="wide")
-st.subtitle("Pessoas e Estabelecimentos")
+st.title("Pessoas e Estabelecimentos")
 
 # Carrega os dados
 pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
