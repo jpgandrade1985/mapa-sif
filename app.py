@@ -53,16 +53,24 @@ fig = px.scatter_mapbox(
     hover_name="nome",
     hover_data={"cidade": True, "status": True, "lotação": True},
     color_discrete_sequence=df_plot["cor"].tolist(),
-    zoom=10,
+    zoom=5,
     height=700
+)
+
+# Ajustar estilo e tamanho dos marcadores
+fig.update_traces(
+    marker=dict(
+        size=[20 if status == "Estabelecimento" else 12 for status in df_plot["status"]],
+        opacity=0.8
+    )
 )
 
 # Estilo mais limpo e sem legenda
 fig.update_layout(
     mapbox_style="carto-positron",
-    mapbox_zoom=10,
+    mapbox_zoom=5,
     mapbox_center={"lat": df_plot["latitude"].mean(), "lon": df_plot["longitude"].mean()},
-    margin={"r":0,"t":0,"l":0,"b":0},
+    margin={"r": 0, "t": 0, "l": 0, "b": 0},
     showlegend=False
 )
 
