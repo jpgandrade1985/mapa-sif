@@ -80,5 +80,14 @@ fig.update_layout(
     margin={"r":0,"t":0,"l":0,"b":0}
 )
 
-st.title("📍 Mapa de Pessoas e Estabelecimentos")
+fig.update_layout(
+    mapbox_style="open-street-map",  # Ativa controles e interatividade padrão
+    margin={"r": 0, "t": 0, "l": 0, "b": 0},
+    dragmode='zoom'  # Garante zoom com rolagem e arrasto
+)
+
+# Exibe o gráfico com interações
+st.plotly_chart(fig, use_container_width=True)
+
+#st.title("📍 Mapa de Pessoas e Estabelecimentos")
 st.plotly_chart(fig, use_container_width=True)
