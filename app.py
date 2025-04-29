@@ -17,16 +17,16 @@ for df in [pessoas, empresas]:
 
 # Cores suaves por status
 cores_status = {
-    'férias': 'rgba(255, 255, 0, 0.4)',         # Amarelo claro
-    'em atividade': 'rgba(0, 128, 0, 0.4)',      # Verde claro
-    'licença/afastamento': 'rgba(255, 0, 0, 0.4)'  # Vermelho claro
+    'férias': 'rgba(255, 255, 0, 1.0)',         # Amarelo claro
+    'em atividade': 'rgba(0, 128, 0, 1.0)',      # Verde claro
+    'licença/afastamento': 'rgba(255, 0, 0, 1.0)'  # Vermelho claro
 }
 
 pessoas['cor'] = pessoas['status'].map(cores_status)
 pessoas['tamanho'] = 7
 pessoas['tipo'] = 'Pessoa'
 
-empresas['cor'] = 'rgba(0, 0, 255, 0.4)'  # Azul claro
+empresas['cor'] = 'rgba(0, 0, 255, 1.0)'  # Azul claro
 empresas['tamanho'] = 12
 empresas['status'] = ''  # para compatibilizar hover
 empresas['lotação'] = ''
@@ -45,8 +45,8 @@ empresas_filtrado = empresas if not empresa_sel else empresas[empresas["nome"] =
 df_mapa = pd.concat([pessoas_filtrado, empresas_filtrado], ignore_index=True)
 
 # Centro do mapa
-center_lat = df_mapa["latitude"].mean()
-center_lon = df_mapa["longitude"].mean()
+center_lat = -23.5489
+center_lon = -46.6388
 
 # Criação do mapa com go.Scattermapbox
 fig = go.Figure()
