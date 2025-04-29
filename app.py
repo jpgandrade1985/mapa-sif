@@ -2,92 +2,82 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# Carregar os dados geolocalizados
-df_pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
-df_estabelecimentos = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
+st.set_page_config(layout="wide")
+st.title("Mapa Interativo de Pessoas e Estabelecimentos")
 
-df_pessoas = df_pessoas.dropna(subset=["latitude", "longitude"])
-df_estabelecimentos = df_estabelecimentos.dropna(subset=["latitude", "longitude"])
+# Carrega os dados
+pessoas = pd.read_excel("pessoas_com_geolocalizacao.xlsx")
+empresas = pd.read_excel("estabelecimentos_com_geolocalizacao.xlsx")
 
-# Cores suaves para status
-cores_status = {
-    "férias": "rgba(255, 255, 0, 1.0)",       # amarelo suave
-    "em atividade": "rgba(0, 255, 0, 1.0)",    # verde suave
-    "licença/afastamento": "rgba(255, 0, 0, 1.0)" # vermelho suave
+# Conversão e limpeza
+for df in [pessoas, empresas]:
+    df['latitude'] = pd.to_numeric(df['latitude'], errors='coerce')
+    df['longitude'] = pd.to_numeric(df['longitude'], errors='coerce')
+    df.dropna(subset=["latitude", "longitude"], inplace=True)
+
+# Cores suaves padrão por status
+cores_suaves = {
+    'férias': 'rgba(255, 255, 0, 0.4)',       # amarelo claro
+    'em atividade': 'rgba(0, 128, 0, 0.4)',   # verde claro
+    'licença/afastamento': 'rgba(255, 0, 0, 0.4)'  # vermelho claro
 }
 
-# Cores destacadas para seleção
-cores_destaque = {
-    "férias": "rgba(255, 255, 0, 1.0)",
-    "em atividade": "rgba(0, 200, 0, 1.0)",
-    "licença/afastamento": "rgba(200, 0, 0, 1.0)"
+# Cores destacadas
+cores_vivas = {
+    'férias': 'yellow',
+    'em atividade': 'green',
+    'licença/afastamento': 'red'
 }
 
+# Atribui cor e tamanho padrão
+pessoas['cor'] = pessoas['status'].map(cores_suaves)
+pessoas['tamanho'] = 7
+empresas['cor'] = 'rgba(0, 0, 255, 0.4)'  # azul claro
+empresas['tamanho'] = 12
+
+# Filtros
 st.sidebar.header("Filtros")
-pessoa_selecionada = st.sidebar.selectbox("Pessoa", ["Todas"] + df_pessoas['nome'].dropna().unique().tolist())
-estab_selecionado = st.sidebar.selectbox("Estabelecimento", ["Todos"] + df_estabelecimentos['nome'].dropna().unique().tolist())
+pessoa_selecionada = st.sidebar.selectbox("Selecione uma pessoa (ou nenhuma)", [""] + sorted(pessoas["nome"].unique()))
+empresa_selecionada = st.sidebar.selectbox("Selecione um estabelecimento (ou nenhum)", [""] + sorted(empresas["nome"].unique()))
 
-# Marcar os selecionados
-df_pessoas['cor'] = df_pessoas['status'].map(cores_status)
-df_pessoas['tamanho'] = 13
+# Destaca seleção se houver
+if pessoa_selecionada:
+    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "cor"] = pessoas.loc[pessoas["nome"] == pessoa_selecionada, "status"].map(cores_vivas)
+    pessoas.loc[pessoas["nome"] == pessoa_selecionada, "tamanho"] = 12
 
-if pessoa_selecionada != "Todas":
-    df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'cor'] = df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'status'].map(cores_destaque)
-    df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'tamanho'] = 15
+if empresa_selecionada:
+    empresas.loc[empresas["nome"] == empresa_selecionada, "cor"] = "blue"
+    empresas.loc[empresas["nome"] == empresa_selecionada, "tamanho"] = 16
 
-df_estabelecimentos['forma'] = 'square'
-df_estabelecimentos['cor'] = "rgba(0, 0, 255, 0.4)"  # azul suave
-df_estabelecimentos['tamanho'] = 20
+# Junta os dados
+df_mapa = pd.concat([pessoas, empresas], ignore_index=True)
 
-if estab_selecionado != "Todos":
-    df_estabelecimentos.loc[df_estabelecimentos['nome'] == estab_selecionado, 'cor'] = "rgba(0, 0, 255, 1.0)"
-    df_estabelecimentos.loc[df_estabelecimentos['nome'] == estab_selecionado, 'tamanho'] = 25
+# Define o centro do mapa
+center = {
+    "lat": df_mapa["latitude"].mean(),
+    "lon": df_mapa["longitude"].mean()
+}
 
-# Criar mapa
+# Mapa com plotly express
 fig = px.scatter_mapbox(
-    df_pessoas,
-    lat='latitude',
-    lon='longitude',
-    color_discrete_sequence=["red"],  # cor será sobrescrita manualmente
-    hover_name='nome',
-    hover_data={'cidade': True, 'status': True, 'lotacao': True, 'latitude': False, 'longitude': False, 'cor': False},
-    zoom=6,
-    height=700
+    df_mapa,
+    lat="latitude",
+    lon="longitude",
+    hover_name="nome",
+    hover_data=["cidade", "status", "lotacao"],
+    color="cor",
+    size="tamanho",
+    size_max=20,
+    zoom=10,
+    center=center
 )
 
-# Adicionar manualmente os marcadores
-fig.update_traces(marker=dict(size=df_pessoas['tamanho'], color=df_pessoas['cor'], symbol="circle"))
-
-# Adicionar estabelecimentos
-fig.add_scattermapbox(
-    lat=df_estabelecimentos['latitude'],
-    lon=df_estabelecimentos['longitude'],
-    mode='markers',
-    marker=dict(
-        size=df_estabelecimentos['tamanho'],
-        color=df_estabelecimentos['cor'],
-        symbol="square"
-    ),
-    text=df_estabelecimentos['nome'],
-    hoverinfo='text'
-)
-
-# Layout do mapa
 fig.update_layout(
     mapbox_style="open-street-map",
-    mapbox_zoom=6,
-    mapbox_center={"lat": -23.55, "lon": -46.63},  # São Paulo como centro
-    margin={"r":0,"t":0,"l":0,"b":0}
-)
-
-fig.update_layout(
-    mapbox_style="open-street-map",  # Ativa controles e interatividade padrão
     margin={"r": 0, "t": 0, "l": 0, "b": 0},
-    dragmode='zoom'  # Garante zoom com rolagem e arrasto
+    showlegend=False,
+    dragmode='zoom'
 )
 
-# Exibe o gráfico com interações
-st.plotly_chart(fig, use_container_width=True)
-
-#st.title("📍 Mapa de Pessoas e Estabelecimentos")
+# Mostra o gráfico
 st.plotly_chart(fig, use_container_width=True)
