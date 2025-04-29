@@ -9,21 +9,11 @@ def obter_coordenadas_por_cep(cep):
     try:
         localizacao = geocode({"postalcode": cep, "country": "Brazil"})
         if localizacao:
-            return pd.Series([localizacao.latitude, localizacao.longitude])
+            cidade = localizacao.raw.get('address', {}).get('city') or \
+                     localizacao.raw.get('address', {}).get('town') or \
+                     localizacao.raw.get('address', {}).get('village') or ''
+            return pd.Series([localizacao.latitude, localizacao.longitude, cidade])
         else:
-            return pd.Series([None, None])
+            return pd.Series([None, None, None])
     except:
-        return pd.Series([None, None])
-
-# src/processamento.py
-import pandas as pd
-from .geocoding import obter_coordenadas_por_cep
-
-def carregar_dados_com_coordenadas(path_pessoas, path_estabelecimentos):
-    pessoas = pd.read_excel(path_pessoas)
-    estabelecimentos = pd.read_excel(path_estabelecimentos)
-
-    pessoas[['latitude', 'longitude']] = pessoas['CEP residencial'].apply(obter_coordenadas_por_cep)
-    estabelecimentos[['latitude', 'longitude']] = estabelecimentos['CEP'].apply(obter_coordenadas_por_cep)
-
-    return pessoas, estabelecimentos
+        return pd.Series([None, None, None])
