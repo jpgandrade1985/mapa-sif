@@ -11,9 +11,9 @@ df_estabelecimentos = df_estabelecimentos.dropna(subset=["latitude", "longitude"
 
 # Cores suaves para status
 cores_status = {
-    "férias": "rgba(255, 255, 0, 0.4)",       # amarelo suave
-    "em atividade": "rgba(0, 255, 0, 0.4)",    # verde suave
-    "licença/afastamento": "rgba(255, 0, 0, 0.4)" # vermelho suave
+    "férias": "rgba(255, 255, 0, 1.0)",       # amarelo suave
+    "em atividade": "rgba(0, 255, 0, 1.0)",    # verde suave
+    "licença/afastamento": "rgba(255, 0, 0, 1.0)" # vermelho suave
 }
 
 # Cores destacadas para seleção
