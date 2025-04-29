@@ -6,8 +6,8 @@ st.set_page_config(layout="wide")
 st.title("Mapa Interativo de Pessoas e Estabelecimentos")
 
 # Carrega os dados
-pessoas = pd.read_excel("/dados/pessoas_geolocalizadas.xlsx")
-empresas = pd.read_excel("/dados/estabelecimentos_geolocalizados.xlsx")
+pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
+empresas = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
 # Conversão e limpeza
 for df in [pessoas, empresas]:
