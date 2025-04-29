@@ -30,12 +30,20 @@ def criar_mapa(pessoas, estabelecimentos, pessoa_selecionada=None, estabelecimen
             cor = cores_status.get(row['status'], 'gray')
             cor_destaque = cores_destaque.get(row['status'], 'black')
             cor_final = cor_destaque if row['nome'] == pessoa_selecionada else cor
+            info = f"""
+            <b>Nome:</b> {row['nome']}<br>
+            <b>Cidade:</b> {row.get('cidade', '')}<br>
+            <b>Status:</b> {row['status']}<br>
+            <b>Lotação:</b> {row['lotação']}<br>
+            """
             folium.CircleMarker(
                 location=[row['latitude'], row['longitude']],
                 radius=5,
-                popup=row['nome'],
+                tooltip=folium.Tooltip(info, sticky=True),
                 color=cor_final,
                 fill=True,
                 fill_color=cor_final,
                 fill_opacity=0.7
             ).add_to(cluster)
+
+    return mapa
