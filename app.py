@@ -6,8 +6,8 @@ st.set_page_config(layout="wide")
 st.title("Mapa Interativo de Pessoas e Estabelecimentos")
 
 # Carrega os dados
-pessoas = pd.read_excel("pessoas_com_geolocalizacao.xlsx")
-empresas = pd.read_excel("estabelecimentos_com_geolocalizacao.xlsx")
+pessoas = pd.read_excel("/dados/pessoas_com_geolocalizacao.xlsx")
+empresas = pd.read_excel("/dados/estabelecimentos_com_geolocalizacao.xlsx")
 
 # Conversão e limpeza
 for df in [pessoas, empresas]:
@@ -17,9 +17,9 @@ for df in [pessoas, empresas]:
 
 # Cores suaves padrão por status
 cores_suaves = {
-    'férias': 'rgba(255, 255, 0, 0.4)',       # amarelo claro
-    'em atividade': 'rgba(0, 128, 0, 0.4)',   # verde claro
-    'licença/afastamento': 'rgba(255, 0, 0, 0.4)'  # vermelho claro
+    'férias': 'rgba(255, 255, 0, 0.7)',       # amarelo claro
+    'em atividade': 'rgba(0, 128, 0, 0.7)',   # verde claro
+    'licença/afastamento': 'rgba(255, 0, 0, 0.7)'  # vermelho claro
 }
 
 # Cores destacadas
@@ -32,7 +32,7 @@ cores_vivas = {
 # Atribui cor e tamanho padrão
 pessoas['cor'] = pessoas['status'].map(cores_suaves)
 pessoas['tamanho'] = 7
-empresas['cor'] = 'rgba(0, 0, 255, 0.4)'  # azul claro
+empresas['cor'] = 'rgba(0, 0, 255, 0.7)'  # azul claro
 empresas['tamanho'] = 12
 
 # Filtros
