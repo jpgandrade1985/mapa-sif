@@ -3,8 +3,8 @@ import streamlit as st
 import plotly.express as px
 
 # Leitura dos arquivos
-df_pessoas = pd.read_excel("pessoas_geolocalizadas.xlsx")
-df_estabelecimentos = pd.read_excel("estabelecimentos_geolocalizados.xlsx")
+df_pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
+df_estabelecimentos = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
 # Filtros na barra lateral
 st.sidebar.title("Filtros")
