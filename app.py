@@ -68,7 +68,7 @@ fig = px.scatter_mapbox(
     color="cor",
     size="tamanho",
     size_max=20,
-    zoom=10,
+    zoom=5,
     center=center
 )
 
