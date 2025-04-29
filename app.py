@@ -1,76 +1,67 @@
-import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import streamlit as st
+import plotly.express as px
 
-st.set_page_config(layout="wide")
-st.title("Mapa Interativo de Pessoas e Estabelecimentos")
+# Leitura dos arquivos
+df_pessoas = pd.read_excel("pessoas_geolocalizadas.xlsx")
+df_estabelecimentos = pd.read_excel("estabelecimentos_geolocalizados.xlsx")
 
-# Carrega os dados
-pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
-empresas = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
+# Filtros na barra lateral
+st.sidebar.title("Filtros")
+filtro_pessoa = st.sidebar.selectbox(
+    "Selecione uma pessoa:", ["Todas"] + sorted(df_pessoas["nome"].dropna().unique())
+)
+filtro_estab = st.sidebar.selectbox(
+    "Selecione um estabelecimento:", ["Todos"] + sorted(df_estabelecimentos["nome"].dropna().unique())
+)
 
-# Adicionando os dados de localização geográfica (latitude e longitude)
-pessoas['latitude'] = pessoas['cep'].apply(lambda x: get_geolocation(x)['lat'])
-pessoas['longitude'] = pessoas['cep'].apply(lambda x: get_geolocation(x)['lon'])
-empresas['latitude'] = empresas['cep'].apply(lambda x: get_geolocation(x)['lat'])
-empresas['longitude'] = empresas['cep'].apply(lambda x: get_geolocation(x)['lon'])
+# Aplicando filtros
+if filtro_pessoa != "Todas":
+    df_pessoas_plot = df_pessoas[df_pessoas["nome"] == filtro_pessoa]
+else:
+    df_pessoas_plot = df_pessoas.copy()
 
-# Adicionando cidade
-pessoas['cidade'] = pessoas['cep'].apply(lambda x: get_city(x))
+if filtro_estab != "Todos":
+    df_estabelecimentos_plot = df_estabelecimentos[df_estabelecimentos["nome"] == filtro_estab]
+else:
+    df_estabelecimentos_plot = df_estabelecimentos.copy()
 
-# Barra lateral com filtros
-st.sidebar.header('Filtros')
-pessoa_selecionada = st.sidebar.selectbox('Selecione uma pessoa:', ['Todos'] + list(pessoas['nome'].unique()))
-estabelecimento_selecionado = st.sidebar.selectbox('Selecione um estabelecimento:', ['Todos'] + list(empresas['nome'].unique()))
-
-# Filtrando dados
-pessoas_filtrado = pessoas.copy()
-empresas_filtrado = empresas.copy()
-
-if pessoa_selecionada not in [None, '', 'Todos']:
-    pessoas_filtrado = pessoas[pessoas['nome'] == pessoa_selecionada]
-
-if estabelecimento_selecionado not in [None, '', 'Todos']:
-    empresas_filtrado = empresas[df_estabs['nome'] == estabelecimento_selecionado]
-
-# Ajustando o centro do mapa
-center_lat = pessoas_filtrado['latitude'].mean()
-center_lon = pessoas_filtrado['longitude'].mean()
-
-# Adicionando as cores para cada status
-status_cor = {
-    'férias': 'rgba(255, 255, 0, 0.7)',  # Amarelo suave
-    'em atividade': 'rgba(0, 255, 0, 0.7)',  # Verde suave
-    'licença/afastamento': 'rgba(255, 0, 0, 0.7)'  # Vermelho suave
+# Cores por status
+cores_status = {
+    "férias": "yellow",
+    "em atividade": "green",
+    "licença/afastamento": "red"
 }
+df_pessoas_plot["cor"] = df_pessoas_plot["status"].map(cores_status)
+df_estabelecimentos_plot["cor"] = "blue"  # cor fixa
 
-pessoas_filtrado['cor'] = pessoas_filtrado['status'].map(status_cor)
-empresas_filtrado['cor'] = 'rgba(0, 0, 255, 0.7)'  # Cor fixa para os estabelecimentos
+# Concatenando os dois conjuntos de dados
+df_plot = pd.concat([df_pessoas_plot, df_estabelecimentos_plot], ignore_index=True)
 
 # Criando o mapa
 fig = px.scatter_mapbox(
-    df_pessoas_filtrado.append(empresas_filtrado),
+    df_plot,
     lat="latitude",
     lon="longitude",
-    color="cor",
     hover_name="nome",
     hover_data=["cidade", "status", "lotação"],
-    title="Mapa de Pessoas e Estabelecimentos",
-    color_continuous_scale="Viridis",
-    size_max=10,
-    zoom=10
+    color_discrete_sequence=df_plot["cor"],
+    zoom=10,
+    height=700
 )
 
-# Removendo a legenda e configurando o mapa
+# Estilo limpo do mapa
 fig.update_layout(
-    mapbox_style="carto-positron",  # Mapa mais limpo
-    mapbox=dict(
-        center=dict(lat=center_lat, lon=center_lon),
-        zoom=10
-    ),
-    margin=dict(l=0, r=0, t=0, b=0),
-    showlegend=False  # Removendo a legenda
+    mapbox_style="carto-positron",
+    mapbox_zoom=10,
+    mapbox_center={
+        "lat": df_plot["latitude"].mean(),
+        "lon": df_plot["longitude"].mean()
+    },
+    margin={"r":0,"t":0,"l":0,"b":0},
+    showlegend=False  # remove 'trace 0', etc.
 )
 
 # Exibindo o mapa
-st.plotly_chart(fig)
+st.title("Mapa Interativo de Pessoas e Estabelecimentos")
+st.plotly_chart(fig, use_container_width=True)
