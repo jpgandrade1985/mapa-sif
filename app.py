@@ -29,19 +29,19 @@ estab_selecionado = st.sidebar.selectbox("Estabelecimento", ["Todos"] + df_estab
 
 # Marcar os selecionados
 df_pessoas['cor'] = df_pessoas['status'].map(cores_status)
-df_pessoas['tamanho'] = 10
+df_pessoas['tamanho'] = 13
 
 if pessoa_selecionada != "Todas":
     df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'cor'] = df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'status'].map(cores_destaque)
-    df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'tamanho'] = 16
+    df_pessoas.loc[df_pessoas['nome'] == pessoa_selecionada, 'tamanho'] = 15
 
 df_estabelecimentos['forma'] = 'square'
 df_estabelecimentos['cor'] = "rgba(0, 0, 255, 0.4)"  # azul suave
-df_estabelecimentos['tamanho'] = 12
+df_estabelecimentos['tamanho'] = 20
 
 if estab_selecionado != "Todos":
     df_estabelecimentos.loc[df_estabelecimentos['nome'] == estab_selecionado, 'cor'] = "rgba(0, 0, 255, 1.0)"
-    df_estabelecimentos.loc[df_estabelecimentos['nome'] == estab_selecionado, 'tamanho'] = 18
+    df_estabelecimentos.loc[df_estabelecimentos['nome'] == estab_selecionado, 'tamanho'] = 25
 
 # Criar mapa
 fig = px.scatter_mapbox(
