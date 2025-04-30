@@ -64,7 +64,7 @@ df_combinado = pd.DataFrame([
 fig = go.Figure()
 
 # Adiciona estabelecimentos (azul claro)
-fig.add_trace(go.Scattermapbox(
+fig.add_trace(go.Scattermap(
     lat=df_estab_plot["latitude"],
     lon=df_estab_plot["longitude"],
     mode="markers",
