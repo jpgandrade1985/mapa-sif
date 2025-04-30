@@ -35,7 +35,7 @@ cores = {
     "em atividade": "green",
     "férias": "yellow",
     "licença/afastamento": "red",
-    "Estabelecimento": "blue"
+    "Estabelecimento": "LightSkyBlue"
 }
 
 # Adiciona coluna de hover individual
@@ -63,6 +63,17 @@ df_combinado = pd.DataFrame([
 # Inicia o mapa
 fig = go.Figure()
 
+# Adiciona estabelecimentos (sempre azuis claros)
+fig.add_trace(go.Scattermapbox(
+    lat=df_estab_plot["latitude"],
+    lon=df_estab_plot["longitude"],
+    mode="markers",
+    marker=dict(size=20, color=cores["Estabelecimento"], line=dict(color='MediumPurple', width=3),
+    hovertext=df_estab_plot["hover"],
+    hoverinfo="text",
+    showlegend=False
+))
+
 # Adiciona marcadores de pessoas com cores diferentes por status
 for status in df_pessoas_plot["status"].unique():
     df_status = df_pessoas_plot[df_pessoas_plot["status"] == status]
@@ -76,16 +87,7 @@ for status in df_pessoas_plot["status"].unique():
         showlegend=False
     ))
 
-# Adiciona estabelecimentos (sempre azuis e quadrados)
-fig.add_trace(go.Scattermapbox(
-    lat=df_estab_plot["latitude"],
-    lon=df_estab_plot["longitude"],
-    mode="markers",
-    marker=dict(size=20, color=cores["Estabelecimento"], symbol="square"),
-    hovertext=df_estab_plot["hover"],
-    hoverinfo="text",
-    showlegend=False
-))
+
 
 # Adiciona marcador transparente com hover combinado
 if not df_combinado.empty:
