@@ -16,6 +16,7 @@ mapa_cores = {
     "férias": "yellow",
     "em atividade": "green",
     "licença/afastamento": "red"
+    "Estabelecimento": "blue"
 }
 df_pessoas["cor"] = df_pessoas["status"].map(mapa_cores)
 
