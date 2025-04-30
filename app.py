@@ -8,7 +8,7 @@ df_estab = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
 # Adiciona colunas consistentes
 df_estab["status"] = "Estabelecimento"
-df_estab["lotação"] = ""
+df_estab["lotacao"] = ""
 
 # Filtros
 st.sidebar.title("Filtros")
