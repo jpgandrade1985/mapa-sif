@@ -38,22 +38,32 @@ cores = {
     "Estabelecimento": "blue"
 }
 
+# Adiciona coluna de hover individual
+df_pessoas_plot["hover"] = "Pessoa: " + df_pessoas_plot["nome"] + " (" + df_pessoas_plot["cidade"] + ")"
+df_estab_plot["hover"] = "Estabelecimento: " + df_estab_plot["nome"] + " (" + df_estab_plot["cidade"] + ")"
+
+# Identifica coordenadas duplicadas (pessoas e estabelecimentos no mesmo ponto)
+coords_pessoas = set(zip(df_pessoas_plot["latitude"], df_pessoas_plot["longitude"]))
+coords_estabs = set(zip(df_estab_plot["latitude"], df_estab_plot["longitude"]))
+coords_comuns = coords_pessoas & coords_estabs
+
+# Dados combinados para pontos coincidentes
+df_combinado = pd.DataFrame([
+    {
+        "latitude": lat,
+        "longitude": lon,
+        "hover": "<br>".join([
+            df_pessoas_plot[(df_pessoas_plot["latitude"] == lat) & (df_pessoas_plot["longitude"] == lon)]["hover"].values[0],
+            df_estab_plot[(df_estab_plot["latitude"] == lat) & (df_estab_plot["longitude"] == lon)]["hover"].values[0]
+        ])
+    }
+    for lat, lon in coords_comuns
+])
+
 # Inicia o mapa
 fig = go.Figure()
 
-# Adiciona estabelecimentos (azul claro)
-fig.add_trace(go.Scattermapbox(
-    lat=df_estab_plot["latitude"],
-    lon=df_estab_plot["longitude"],
-    mode="markers",
-    marker=dict(size=20, color="LightSkyBlue"),
-    line=dict(width=2, color='DarkSlateGrey'),
-    hovertext=df_estab_plot["nome"] + " (" + df_estab_plot["cidade"] + ")",
-    hoverinfo="text",
-    showlegend=False
-))
-
-# Adiciona pessoas
+# Adiciona marcadores de pessoas com cores diferentes por status
 for status in df_pessoas_plot["status"].unique():
     df_status = df_pessoas_plot[df_pessoas_plot["status"] == status]
     fig.add_trace(go.Scattermapbox(
@@ -61,7 +71,30 @@ for status in df_pessoas_plot["status"].unique():
         lon=df_status["longitude"],
         mode="markers",
         marker=dict(size=12, color=cores.get(status, "gray"), symbol="circle"),
-        hovertext=df_status["nome"] + " (" + df_status["cidade"] + ")",
+        hovertext=df_status["hover"],
+        hoverinfo="text",
+        showlegend=False
+    ))
+
+# Adiciona estabelecimentos (sempre azuis e quadrados)
+fig.add_trace(go.Scattermapbox(
+    lat=df_estab_plot["latitude"],
+    lon=df_estab_plot["longitude"],
+    mode="markers",
+    marker=dict(size=20, color=cores["Estabelecimento"], symbol="square"),
+    hovertext=df_estab_plot["hover"],
+    hoverinfo="text",
+    showlegend=False
+))
+
+# Adiciona marcador transparente com hover combinado
+if not df_combinado.empty:
+    fig.add_trace(go.Scattermapbox(
+        lat=df_combinado["latitude"],
+        lon=df_combinado["longitude"],
+        mode="markers",
+        marker=dict(size=25, color="rgba(0,0,0,0)"),  # invisível
+        hovertext=df_combinado["hover"],
         hoverinfo="text",
         showlegend=False
     ))
