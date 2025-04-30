@@ -3,8 +3,8 @@ import streamlit as st
 import plotly.graph_objects as go
 
 # Leitura dos dados
-df_pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
-df_estab = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
+df_pessoas = pd.read_csv("dados/pessoas_geolocalizadas.csv")
+df_estab = pd.read_csv("dados/estabelecimentos_geolocalizados.csv")
 
 # Adiciona colunas consistentes
 df_estab["status"] = "Estabelecimento"
