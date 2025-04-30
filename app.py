@@ -60,7 +60,7 @@ fig.add_trace(go.Scattermapbox(
     lon=df_estab_plot["longitude"],
     mode="markers",
     marker=dict(size=20, color="LightSkyBlue"),
-    line=dict(width=2, color='DarkSlateGrey')
+    line=dict(width=2, color='DarkSlateGrey'),
     hovertext=df_estab_plot["nome"] + " (" + df_estab_plot["cidade"] + ")",
     hoverinfo="text",
     showlegend=False
