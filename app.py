@@ -2,40 +2,39 @@ import pandas as pd
 import streamlit as st
 import plotly.express as px
 
-# Leitura dos arquivos
+# Leitura dos dados
 df_pessoas = pd.read_excel("dados/pessoas_geolocalizadas.xlsx")
-df_estabelecimentos = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
+df_estab = pd.read_excel("dados/estabelecimentos_geolocalizados.xlsx")
 
-# Adiciona colunas faltantes aos estabelecimentos para manter consistência
-df_estabelecimentos["status"] = "Estabelecimento"
-df_estabelecimentos["lotação"] = ""
+# Adiciona colunas consistentes
+df_estab["status"] = "Estabelecimento"
+df_estab["lotação"] = ""
 
-# Junta os dois dataframes
-df_total = pd.concat([df_pessoas, df_estabelecimentos], ignore_index=True)
-
-# Filtros da barra lateral
+# Filtros na barra lateral
 st.sidebar.title("Filtros")
 pessoa_sel = st.sidebar.selectbox("Selecione uma pessoa:", ["Todas"] + sorted(df_pessoas["nome"].dropna().unique()))
-estab_sel = st.sidebar.selectbox("Selecione um estabelecimento:", ["Todos"] + sorted(df_estabelecimentos["nome"].dropna().unique()))
+estab_sel = st.sidebar.selectbox("Selecione um estabelecimento:", ["Todos"] + sorted(df_estab["nome"].dropna().unique()))
 
 # Aplicar filtros
-if pessoa_sel != "Todas":
-    df_pessoas_plot = df_pessoas[df_pessoas["nome"] == pessoa_sel]
-else:
-    df_pessoas_plot = df_pessoas.copy()
+df_pessoas_plot = df_pessoas if pessoa_sel == "Todas" else df_pessoas[df_pessoas["nome"] == pessoa_sel]
+df_estab_plot = df_estab if estab_sel == "Todos" else df_estab[df_estab["nome"] == estab_sel]
 
-if estab_sel != "Todos":
-    df_estab_plot = df_estabelecimentos[df_estabelecimentos["nome"] == estab_sel]
-else:
-    df_estab_plot = df_estabelecimentos.copy()
-
-# Junta dados filtrados
+# Junta os dados filtrados
 df_plot = pd.concat([df_pessoas_plot, df_estab_plot], ignore_index=True)
 
-# Define tamanho dos marcadores
+# Verifica colunas obrigatórias
+obrigatorias = ["nome", "cidade", "status", "lotação", "latitude", "longitude"]
+faltando = [col for col in obrigatorias if col not in df_plot.columns]
+if faltando:
+    st.error(f"Colunas faltando: {faltando}")
+    st.stop()
+
+# Remove linhas com coordenadas ausentes
+df_plot = df_plot.dropna(subset=["latitude", "longitude"])
+
+# Define símbolo e tamanho
 df_plot["tamanho"] = df_plot["status"].apply(lambda x: 20 if x == "Estabelecimento" else 12)
 
-# Criar o mapa
 fig = px.scatter_mapbox(
     df_plot,
     lat="latitude",
@@ -62,7 +61,6 @@ fig = px.scatter_mapbox(
     }
 )
 
-# Ajustes no layout
 fig.update_layout(
     mapbox_style="carto-positron",
     mapbox_center={"lat": df_plot["latitude"].mean(), "lon": df_plot["longitude"].mean()},
@@ -70,6 +68,5 @@ fig.update_layout(
     showlegend=False
 )
 
-# Exibe o mapa
 st.title("Mapa Interativo de Pessoas e Estabelecimentos")
 st.plotly_chart(fig, use_container_width=True)
