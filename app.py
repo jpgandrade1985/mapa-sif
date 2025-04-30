@@ -70,8 +70,7 @@ fig.add_trace(go.Scattermapbox(
     mode="markers",
     marker=dict(
         size=20, 
-        color='LightSkyBlue',
-        Line=dict(color='MediumPurple', width=2)
+        color='LightSkyBlue'
     ), 
     hovertext=df_estab_plot["hover"],
     hoverinfo="text",
