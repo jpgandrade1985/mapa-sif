@@ -70,7 +70,8 @@ fig.add_trace(go.Scattermapbox(
     mode="markers",
     marker=dict(
         size=20, 
-        color='LightSkyBlue' 
+        color='LightSkyBlue',
+        line=dict(color='MediumPurple', width=2)
     ), 
     hovertext=df_estab_plot["hover"],
     hoverinfo="text",
@@ -89,8 +90,6 @@ for status in df_pessoas_plot["status"].unique():
         hoverinfo="text",
         showlegend=False
     ))
-
-
 
 # Adiciona marcador transparente com hover combinado
 if not df_combinado.empty:
