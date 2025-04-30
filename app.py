@@ -63,13 +63,12 @@ df_combinado = pd.DataFrame([
 # Inicia o mapa
 fig = go.Figure()
 
-# Adiciona estabelecimentos (sempre azuis claros)
+# Adiciona estabelecimentos (azul claro)
 fig.add_trace(go.Scattermapbox(
     lat=df_estab_plot["latitude"],
     lon=df_estab_plot["longitude"],
     mode="markers",
-    marker=dict(size=20, color='LightSkyBlue'), 
-    line=dict(color='MediumPurple', width=7),
+    marker=dict(size=20, color='LightSkyBlue', line=dict(color='MediumPurple', width=7)), 
     hovertext=df_estab_plot["hover"],
     hoverinfo="text",
     showlegend=False
