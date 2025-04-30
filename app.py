@@ -113,7 +113,14 @@ fig.update_layout(
         lon=pd.concat([df_pessoas_plot["longitude"], df_estab_plot["longitude"]]).mean(),
     ),
     margin={"r": 0, "t": 0, "l": 0, "b": 0},
-    showlegend=False
+    legend=dict(
+        title="Legenda",
+        orientation="h",
+        yanchor="bottom",
+        y=0.01,
+        xanchor="left",
+        x=0.01
+    )
 )
 
 # Exibição
