@@ -54,12 +54,13 @@ for status in df_pessoas_plot["status"].unique():
         showlegend=False
     ))
 
-# Adiciona estabelecimentos (sempre azuis e quadrados)
+# Adiciona estabelecimentos (sempre azuis)
 fig.add_trace(go.Scattermapbox(
     lat=df_estab_plot["latitude"],
     lon=df_estab_plot["longitude"],
     mode="markers",
-    marker=dict(size=20, color="blue", symbol="triangle"),
+    marker=dict(size=20, color="LightSkyBlue"),
+    line=dict(width=2, color='DarkSlateGrey')
     hovertext=df_estab_plot["nome"] + " (" + df_estab_plot["cidade"] + ")",
     hoverinfo="text",
     showlegend=False
