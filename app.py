@@ -41,6 +41,18 @@ cores = {
 # Inicia o mapa
 fig = go.Figure()
 
+# Adiciona estabelecimentos (azul claro)
+fig.add_trace(go.Scattermapbox(
+    lat=df_estab_plot["latitude"],
+    lon=df_estab_plot["longitude"],
+    mode="markers",
+    marker=dict(size=20, color="LightSkyBlue"),
+    line=dict(width=2, color='DarkSlateGrey'),
+    hovertext=df_estab_plot["nome"] + " (" + df_estab_plot["cidade"] + ")",
+    hoverinfo="text",
+    showlegend=False
+))
+
 # Adiciona pessoas
 for status in df_pessoas_plot["status"].unique():
     df_status = df_pessoas_plot[df_pessoas_plot["status"] == status]
@@ -53,18 +65,6 @@ for status in df_pessoas_plot["status"].unique():
         hoverinfo="text",
         showlegend=False
     ))
-
-# Adiciona estabelecimentos (sempre azuis)
-fig.add_trace(go.Scattermapbox(
-    lat=df_estab_plot["latitude"],
-    lon=df_estab_plot["longitude"],
-    mode="markers",
-    marker=dict(size=20, color="LightSkyBlue"),
-    line=dict(width=2, color='DarkSlateGrey'),
-    hovertext=df_estab_plot["nome"] + " (" + df_estab_plot["cidade"] + ")",
-    hoverinfo="text",
-    showlegend=False
-))
 
 # Layout do mapa
 fig.update_layout(
