@@ -19,7 +19,7 @@ df_pessoas_plot = df_pessoas if pessoa_sel == "Todas" else df_pessoas[df_pessoas
 df_estab_plot = df_estab if estab_sel == "Todos" else df_estab[df_estab["nome"] == estab_sel]
 
 # Verificação de colunas obrigatórias
-obrigatorias = ["nome", "cidade", "status", "lotacao", "latitude", "longitude"]
+obrigatorias = ["nome", "municipio", "status", "lotacao", "latitude", "longitude"]
 for df in [df_pessoas_plot, df_estab_plot]:
     faltando = [col for col in obrigatorias if col not in df.columns]
     if faltando:
@@ -39,8 +39,8 @@ cores = {
 }
 
 # Adiciona coluna de hover individual
-df_pessoas_plot["hover"] = "Pessoa: " + df_pessoas_plot["nome"] + " (" + df_pessoas_plot["cidade"] + ")"
-df_estab_plot["hover"] = "Estabelecimento: " + df_estab_plot["nome"] + " (" + df_estab_plot["cidade"] + ")"
+df_pessoas_plot["hover"] = "Pessoa: " + df_pessoas_plot["nome"] + " (" + df_pessoas_plot["municipio"] + ")"
+df_estab_plot["hover"] = "Estabelecimento: " + df_estab_plot["nome"] + " (" + df_estab_plot["municipio"] + ")"
 
 # Identifica coordenadas duplicadas (pessoas e estabelecimentos no mesmo ponto)
 coords_pessoas = set(zip(df_pessoas_plot["latitude"], df_pessoas_plot["longitude"]))
