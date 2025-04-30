@@ -73,7 +73,7 @@ fig.add_trace(go.Scattermapbox(
     hovertext=df_estab_plot["hover"],
     hoverinfo="text",
     showlegend=False
-))
+)
 
 # Adiciona marcadores de pessoas com cores diferentes por status
 for status in df_pessoas_plot["status"].unique():
